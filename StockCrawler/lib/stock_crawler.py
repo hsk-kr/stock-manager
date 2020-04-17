@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from .crawling import get_source_from_url
-from .date import get_today_stock_date_format, calculate_start_date
+from .date import get_today_stock_date_format
+from .number import str_to_float
 
 KOSPI_SISE_RISE_URL = "https://finance.naver.com/sise/sise_rise.nhn?sosok=0"
 KOSDAQ_SISE_RISE_URL = "https://finance.naver.com/sise/sise_rise.nhn?sosok=1"
@@ -63,7 +64,8 @@ class StockInfo:
             Fetch daily stock prices information from the web stock detail page
             and returns dictionary list.
         """
-        html = get_source_from_url(DAILY_STOCK_PRICE_URL.format(self.code, page))
+        html = get_source_from_url(
+            DAILY_STOCK_PRICE_URL.format(self.code, page))
         soup = BeautifulSoup(html, "html.parser")
         price_trs = soup.find("table").find_all("tr")[1:]
 
@@ -77,31 +79,118 @@ class StockInfo:
 
             daily_stock_price_info = {
                 "date": price_tds[0].find("span").text.strip(),
-                "closing_price": price_tds[1].find("span").text.strip(),
-                "daily_increase": price_tds[2].find("span").text.strip(),
-                "market_value": price_tds[3].find("span").text.strip(),
-                "rising_falling_type": "rising"
-                if price_tds[2].find("img")["alt"] == "상승"
-                else "하락",
-                "high_price": price_tds[4].find("span").text.strip(),
-                "low_price": price_tds[5].find("span").text.strip(),
-                "trading_volumn": price_tds[6].find("span").text.strip(),
+                "closing_price": str_to_float(price_tds[1].find("span").text),
+                "daily_increase": str_to_float(price_tds[2].find("span").text),
+                "market_value": str_to_float(price_tds[3].find("span").text),
+                "is_rising": False if price_tds[2].find("img") == None else (
+                    True
+                    if price_tds[2].find("img")["src"].split("/")[-1].find("up") >= 0
+                    else False),
+                "high_price": str_to_float(price_tds[4].find("span").text),
+                "low_price": str_to_float(price_tds[5].find("span").text),
+                "trading_volumn": str_to_float(price_tds[6].find("span").text),
             }
             daily_stock_price_list.append(daily_stock_price_info)
 
         return daily_stock_price_list
 
-    def calculate_continous_stock_list(self):
+    def calculate_continuous_stock_list(self):
         """
         Calculates a stock list that contains continuous high stocks from today to past,
-        then returns the stock list 
+        then returns the stock list and It has the stock list in a class instance's variable
+        named 'continuous_stock_list'.
         """
         page = 1
 
-        # TODO: Keep working!
-        while True:
+        continuous_stock_list = []
+        loop = True
+
+        while loop:
             daily_stock_prices = self.fetch_daily_stock_prices(page)
 
+            for sp in daily_stock_prices:
+                if sp["is_rising"]:
+                    continuous_stock_list.append(sp)
+                else:
+                    loop = False
+                    break
+            page += 1
+
+        self.continuous_stock_list = continuous_stock_list
+        return continuous_stock_list
+
+    def validate_continuous_stock_list(self, min_daily_increase_per, avg_trading_volumn, min_stock_price, max_stock_price, force=False):
+        """
+            Validate weather the stock list is able to be trust.
+            The stock has to be satisfied all of conditions and length of the list has to be greater than 1.
+            It uses a continuous_stock_list that made by calculate_continuous_stock_list function,
+            If you call this function before call the calculate_continuous_stock_list, It calls calculate_continuous_stock_List function.
+
+            Args:
+                min_daily_increase_per: A percentage how much closing price has increased compared to previous closing price. 
+                                         Every day, the percentages have to be greater than or equal to this.
+                avg_trading_volumn: An average volumn between dates that increasing has to be greater than or equal to this.
+                min_stock_price: The stock price of last day has to be greater than or equal to this.
+                max_stock_price: The stock price of last day has to be less than or equal to this.
+                force: If you don't want to use the continuous_stock_list that made by calculate_continuous_stock_list function before,
+                        Set this to True, so then this function calls calculate_continuous_stock_list at first.
+
+            Returns:
+                dict: {
+                    "validation_result": False,
+                    "message": String # Why It failed to validate
+                }
+                bool: If the stock list has to be validated, It returns True otherwise False.
+        """
+        try:
+            continuous_stock_list = self.continuous_stock_list
+            has_init = True
+        except AttributeError:
+            has_init = False
+
+        if not has_init or force:
+            self.calculate_continuous_stock_list()
+            continuous_stock_list = self.continuous_stock_list
+
+        def _make_result(validation_result, message):
+            return {
+                "validation_result": validation_result,
+                "message": message
+            }
+
+        ct_stock_list_length = len(continuous_stock_list)
+
+        if ct_stock_list_length < 2:
+            return _make_result(False, "A length of the stock list less than 2.")
+
+        if continuous_stock_list[0]["closing_price"] < min_stock_price:
+            return _make_result(False, "A closing price({:0.1f}) of last of the stock list less than min_stock_price({:0.1f})".format(continuous_stock_list[0]["closing_price"], min_stock_price))
+        elif continuous_stock_list[0]["closing_price"] > max_stock_price:
+            return _make_result(False, "A closing price({:0.1f}) of last of the stock list greater than max_stock_price({:0.1f})".format(continuous_stock_list[0]["closing_price"], max_stock_price))
+
+        total_trading_volumn = 0
+
+        for sidx in range(ct_stock_list_length-1):
+            stock = continuous_stock_list[sidx]
+            prev_stock = continuous_stock_list[sidx + 1]
+
+            increased_price = stock["closing_price"] - \
+                prev_stock["closing_price"]
+            increased_per = increased_price / prev_stock["closing_price"] * 100
+
+            if increased_per < min_daily_increase_per:
+                return _make_result(False, "Increased percentage({:0.1f}) less than min_daily_increase_per({:0.1f})".format(increased_per, min_daily_increase_per))
+
+            total_trading_volumn += stock["trading_volumn"]
+
+        total_trading_volumn += continuous_stock_list[ct_stock_list_length -
+                                                      1]["trading_volumn"]
+        _avg_trading_volumn = (total_trading_volumn / ct_stock_list_length)
+
+        if _avg_trading_volumn < avg_trading_volumn:
+            return _make_result(False, "An average of traiding volumn({:0.1f}) less than avg_trading_volumn({:0.1f})".format(_avg_trading_volumn, avg_trading_volumn))
+
+        return _make_result(True, "Success to validate")
 
 
 class StockCrawler:
@@ -129,20 +218,25 @@ class StockCrawler:
 
                 temp_obj_for_stock_info = {
                     "stock_detail_link": "{0}{1}".format(
-                        DETAIL_STOCK_BASE_URL, stock_tds[1].find("a")["href"].strip()
+                        DETAIL_STOCK_BASE_URL, stock_tds[1].find("a")[
+                            "href"].strip()
                     ),
-                    "code": stock_tds[1].find("a")["href"].split("code=")[-1],  # 종목코드
+                    # 종목코드
+                    "code": stock_tds[1].find("a")["href"].split("code=")[-1],
                     "name": stock_tds[1].find("a").text.strip(),  # 종목명
-                    "current_stock_price": stock_tds[2].text.strip(),  # 현재가
-                    "day_increase": stock_tds[3].find("span").text.strip(),  # 전일비
-                    "fluctuation": stock_tds[4].find("span").text.strip(),  # 등락률
-                    "trading_volumn": stock_tds[5].text.strip(),  # 거래량
-                    "bid": stock_tds[6].text.strip(),  # 매수호가
-                    "ask": stock_tds[7].text.strip(),  # 매도호가
-                    "amount_buying": stock_tds[8].text.strip(),  # 매수총잔량
-                    "amount_selling": stock_tds[9].text.strip(),  # 매도총잔량
-                    "per": stock_tds[10].text.strip(),  # PER
-                    "roe": stock_tds[11].text.strip(),  # ROE
+                    # 현재가
+                    "current_stock_price": str_to_float(stock_tds[2].text),
+                    # 전일비
+                    "day_increase": str_to_float(stock_tds[3].find("span").text),
+                    # 등락률
+                    "fluctuation": str_to_float(stock_tds[4].find("span").text),
+                    "trading_volumn": str_to_float(stock_tds[5].text),  # 거래량
+                    "bid": str_to_float(stock_tds[6].text),  # 매수호가
+                    "ask": str_to_float(stock_tds[7].text),  # 매도호가
+                    "amount_buying": str_to_float(stock_tds[8].text),  # 매수총잔량
+                    "amount_selling": str_to_float(stock_tds[9].text),  # 매도총잔량
+                    "per": str_to_float(stock_tds[10].text),  # PER
+                    "roe": str_to_float(stock_tds[11].text),  # ROE
                 }
 
                 stock_info = StockInfo(obj=temp_obj_for_stock_info)
