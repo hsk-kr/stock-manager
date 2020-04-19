@@ -59,6 +59,29 @@ class StockInfo:
             self.per = per
             self.roe = roe
 
+    def get_stock_info_as_dict(self):
+        """
+            Return a dict of stock that has instance variables of Stock.
+            like name, code, stock_detail_link ...
+        """
+        stock_obj = {}
+
+        stock_obj["name"] = self.name
+        stock_obj["code"] = self.code
+        stock_obj["stock_detail_link"] = self.stock_detail_link
+        stock_obj["current_stock_price"] = self.current_stock_price
+        stock_obj["day_increase"] = self.day_increase
+        stock_obj["fluctuation"] = self.fluctuation
+        stock_obj["trading_volumn"] = self.trading_volumn
+        stock_obj["bid"] = self.bid
+        stock_obj["ask"] = self.ask
+        stock_obj["amount_buying"] = self.amount_buying
+        stock_obj["amount_selling"] = self.amount_selling,
+        stock_obj["per"] = self.per
+        stock_obj["roe"] = self.roe
+
+        return stock_obj
+
     def fetch_daily_stock_prices(self, page=1):
         """
             Fetch daily stock prices information from the web stock detail page
@@ -137,10 +160,9 @@ class StockInfo:
 
             Returns:
                 dict: {
-                    "validation_result": False,
+                    "result": bool: If the stock list has to be validated, It returns True otherwise False.,
                     "message": String # Why It failed to validate
                 }
-                bool: If the stock list has to be validated, It returns True otherwise False.
         """
         try:
             continuous_stock_list = self.continuous_stock_list
@@ -152,9 +174,9 @@ class StockInfo:
             self.calculate_continuous_stock_list()
             continuous_stock_list = self.continuous_stock_list
 
-        def _make_result(validation_result, message):
+        def _make_result(result, message):
             return {
-                "validation_result": validation_result,
+                "result": result,
                 "message": message
             }
 
@@ -221,6 +243,7 @@ class StockCrawler:
                         DETAIL_STOCK_BASE_URL, stock_tds[1].find("a")[
                             "href"].strip()
                     ),
+
                     # 종목코드
                     "code": stock_tds[1].find("a")["href"].split("code=")[-1],
                     "name": stock_tds[1].find("a").text.strip(),  # 종목명
