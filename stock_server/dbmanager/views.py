@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from .models import Stock
+from .serializers import StockSerializer
+
+
+class StockViewset(viewsets.ModelViewSet):
+    serializer_class = StockSerializer
+    queryset = Stock.objects.all()
