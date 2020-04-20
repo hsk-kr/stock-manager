@@ -1,9 +1,16 @@
-import requests
+import requests, json
 
 STOCK_API_URL = "http://52.78.84.79:8888/api/stock/"
 
 
-def insert_stock(work_uuid, stock_type, stockinfo, continuous_stock_list, validation_result, validation_message):
+def insert_stock(
+    work_uuid,
+    stock_type,
+    stockinfo,
+    continuous_stock_list,
+    validation_result,
+    validation_message,
+):
     """
         Request an API to insert Stock Information to database
         returns True if it's executed successfully otherwise returns False
@@ -32,13 +39,16 @@ def insert_stock(work_uuid, stock_type, stockinfo, continuous_stock_list, valida
         "amount_selling": stockinfo["amount_selling"],
         "per": stockinfo["per"],
         "roe": stockinfo["roe"],
-        "continuous_stock_list": continuous_stock_list,
+        "continuous_stock_list": json.dumps(continuous_stock_list),
         "validation_result": validation_result,
         "validation_message": validation_message,
     }
 
     try:
-        res = requests.post(url=STOCK_API_URL, data=data)
+        res = requests.post(
+            url=STOCK_API_URL, data=data, headers={"contentType": "application/json"}
+        )
+        
         if res.status_code == 200:
             return True
         else:

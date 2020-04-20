@@ -11,7 +11,8 @@ from lib.dbapi import insert_stock
 if __name__ == "__main__":
     if len(sys.argv) < 6:
         print(
-            "manager.py [kospi|kosdaq|all] [min_daily_increase_per] [avg_trading_volumn] [min_stock_price] [max_stock_price]")
+            "manager.py [kospi|kosdaq|all] [min_daily_increase_per] [avg_trading_volumn] [min_stock_price] [max_stock_price]"
+        )
         sys.exit(0)
 
     try:
@@ -20,11 +21,19 @@ if __name__ == "__main__":
         avg_trading_volumn = float(sys.argv[3])
         min_stock_price = float(sys.argv[4])
         max_stock_price = float(sys.argv[5])
-        work_uuid = uuid.uuid4()
+        work_uuid = str(uuid.uuid4())
 
         # start crawling
-        log_activity(work_uuid, CA_CRAWLING_START.format(
-            stock_type, min_daily_increase_per, avg_trading_volumn, min_stock_price, max_stock_price))
+        log_activity(
+            work_uuid,
+            CA_CRAWLING_START.format(
+                stock_type,
+                min_daily_increase_per,
+                avg_trading_volumn,
+                min_stock_price,
+                max_stock_price,
+            ),
+        )
 
         sc = StockCrawler()
 
@@ -45,9 +54,20 @@ if __name__ == "__main__":
             log_activity(work_uuid, CA_START_TO_VALIDATE_KOSPI)
             for stock in kospi_list:
                 val_rst = stock.validate_continuous_stock_list(
-                    min_daily_increase_per, avg_trading_volumn, min_stock_price, max_stock_price)
-                insert_stock(work_uuid, "kospi", stock.get_stock_info_as_dict(
-                ), stock.continuous_stock_list, val_rst["result"], val_rst["message"])
+                    min_daily_increase_per,
+                    avg_trading_volumn,
+                    min_stock_price,
+                    max_stock_price,
+                )
+
+                insert_stock(
+                    work_uuid,
+                    "kospi",
+                    stock.get_stock_info_as_dict(),
+                    stock.continuous_stock_list,
+                    val_rst["result"],
+                    val_rst["message"],
+                )
 
             log_activity(work_uuid, CA_VALIDATE_KOSPI_DONE)
 
@@ -56,9 +76,18 @@ if __name__ == "__main__":
             log_activity(work_uuid, CA_START_TO_VALIDATE_KOSDAQ)
             for stock in kosdaq_list:
                 val_rst = stock.validate_continuous_stock_list(
-                    min_daily_increase_per, avg_trading_volumn, min_stock_price, max_stock_price)
-                insert_stock("kosdaq", stock.get_stock_info_as_dict(
-                ), stock.continuous_stock_list, val_rst["result"], val_rst["message"])
+                    min_daily_increase_per,
+                    avg_trading_volumn,
+                    min_stock_price,
+                    max_stock_price,
+                )
+                insert_stock(
+                    "kosdaq",
+                    stock.get_stock_info_as_dict(),
+                    stock.continuous_stock_list,
+                    val_rst["result"],
+                    val_rst["message"],
+                )
 
             log_activity(work_uuid, CA_VALIDATE_KOSDAQ_DONE)
 
