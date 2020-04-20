@@ -1,5 +1,5 @@
 import sys
-import uuid
+import uuid, traceback
 
 from lib.crawling import get_source_from_url
 from lib.stock_crawler import StockCrawler
@@ -81,7 +81,9 @@ if __name__ == "__main__":
                     min_stock_price,
                     max_stock_price,
                 )
+
                 insert_stock(
+                    work_uuid,
                     "kosdaq",
                     stock.get_stock_info_as_dict(),
                     stock.continuous_stock_list,
@@ -94,3 +96,4 @@ if __name__ == "__main__":
         log_activity(work_uuid, CA_CRAWLING_DONE)
     except Exception as e:
         log_activity(work_uuid, CA_ERROR.format(e))
+        traceback.print_exc()
