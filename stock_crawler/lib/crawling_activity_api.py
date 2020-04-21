@@ -16,16 +16,13 @@ CA_CRAWLING_DONE = "Crawling done."
 CA_ERROR = "Occur an error / {}"
 
 
-def log_activity(uuid, activity):
+def log_activity(worker_id, activity):
     """
         Insert an activity to database
         returns True it requested successfully otherwise returns False
     """
     print("log:{}".format(activity))
-    data = {
-        "work_uuid": uuid,
-        "activity": activity
-    }
+    data = {"worker_id": worker_id, "activity": activity}
 
     try:
         res = requests.post(url=CRAWLING_ACTIVITY_API_URL, data=data)

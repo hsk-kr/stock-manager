@@ -4,7 +4,7 @@ STOCK_API_URL = "http://52.78.84.79:8888/api/stock/"
 
 
 def insert_stock(
-    work_uuid,
+    worker_id,
     stock_type,
     stockinfo,
     continuous_stock_list,
@@ -16,7 +16,7 @@ def insert_stock(
         returns True if it's executed successfully otherwise returns False
 
         Args:
-            work_uuid (str): work uuid
+            worker_id (id): worker id
             stock_type (str): kospia | kosdaq
             stockinfo (StockInfo)
             continuous_stock_list (list): calculated by StockInfo class
@@ -24,7 +24,7 @@ def insert_stock(
             validation_message (string): message of the validate_continuous_stock_list method
     """
     data = {
-        "work_uuid": work_uuid,
+        "worker_id": worker_id,
         "name": stockinfo["name"],
         "code": stockinfo["code"],
         "stock_type": stock_type,
@@ -48,7 +48,7 @@ def insert_stock(
         res = requests.post(
             url=STOCK_API_URL, data=data, headers={"contentType": "application/json"}
         )
-        
+
         if res.status_code == 200:
             return True
         else:

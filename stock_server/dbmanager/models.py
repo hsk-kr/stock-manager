@@ -4,8 +4,12 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 
+class Worker(models.Model):
+    created_at = models.DateTimeField(default=timezone.now)
+
+
 class Stock(models.Model):
-    work_uuid = models.CharField(max_length=256)
+    worker_id = models.ForeignKey(Worker, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     code = models.CharField(max_length=20)
     stock_type = models.CharField(max_length=10)
@@ -26,6 +30,6 @@ class Stock(models.Model):
 
 
 class CrawlerActivity(models.Model):
-    work_uuid = models.TextField()
+    worker_id = models.ForeignKey(Worker, on_delete=models.CASCADE)
     activity = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
