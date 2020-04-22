@@ -33,3 +33,10 @@ class CrawlerActivity(models.Model):
     worker_id = models.ForeignKey(Worker, on_delete=models.CASCADE)
     activity = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
+
+
+class AnalyzedData(models.Model):
+    stock_id = models.ForeignKey(Stock, on_delete=models.CASCADE)
+    continuous_days = models.IntegerField()
+    last_fluctuation = models.FloatField()
+    created_at = models.DateTimeField(default=timezone.now)

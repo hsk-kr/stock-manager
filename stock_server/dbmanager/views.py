@@ -1,8 +1,12 @@
 from rest_framework import viewsets
 
-from .models import Stock, CrawlerActivity, Worker
-from .serializers import StockSerializer, CrawlerActivitySerializer, WorkerSerializer
-from rest_framework import mixins
+from .models import Stock, CrawlerActivity, Worker, AnalyzedData
+from .serializers import (
+    StockSerializer,
+    CrawlerActivitySerializer,
+    WorkerSerializer,
+    AnalyzedDataSerializer,
+)
 
 
 class StockViewset(viewsets.ModelViewSet):
@@ -18,3 +22,8 @@ class CrawlerActivityViewSet(viewsets.ModelViewSet):
 class WorkerViewSet(viewsets.ModelViewSet):
     serializer_class = WorkerSerializer
     queryset = Worker.objects.all()
+
+
+class AnalyzedDataViewSet(viewsets.ModelViewSet):
+    serializer_class = AnalyzedDataSerializer
+    queryset = AnalyzedData.objects.all()
