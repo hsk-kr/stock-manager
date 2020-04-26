@@ -11,9 +11,9 @@ continuous stock list is a list that stock prices sequences from today to that k
 
 Figure out what stock is right to vest. It calculates from stocks information that StockCrawler had put into db.
 
-## Django webserver apps
+## StockServer
 
-### StockDBManager
+### DBManager
 
 RestfulAPI server for DB.<br>
 Crawler and Analyzer push data using this.<br>

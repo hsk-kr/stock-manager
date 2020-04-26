@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Stock, CrawlerActivity, Worker, AnalyzedData
 from .serializers import (
@@ -12,6 +13,8 @@ from .serializers import (
 class StockViewset(viewsets.ModelViewSet):
     serializer_class = StockSerializer
     queryset = Stock.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ("worker_id__id", "validation_result")
 
 
 class CrawlerActivityViewSet(viewsets.ModelViewSet):

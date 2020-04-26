@@ -1,5 +1,6 @@
 import sys
-import uuid, traceback
+import uuid
+import traceback
 
 from lib.crawling import get_source_from_url
 from lib.stock_crawler import StockCrawler
