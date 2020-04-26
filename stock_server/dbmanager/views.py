@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Stock, CrawlerActivity, Worker, AnalyzedData
@@ -30,3 +30,11 @@ class WorkerViewSet(viewsets.ModelViewSet):
 class AnalyzedDataViewSet(viewsets.ModelViewSet):
     serializer_class = AnalyzedDataSerializer
     queryset = AnalyzedData.objects.all()
+
+
+class NotAnalyzedDataViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+      Returns stocks that not in analyzed_data.
+    """
+    serializer_class = StockSerializer
+    queryset = Stock.objects.filter(analyzeddata__isnull=True)
