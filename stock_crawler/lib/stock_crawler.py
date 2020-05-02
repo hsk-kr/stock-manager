@@ -87,7 +87,8 @@ class StockInfo:
             Fetch daily stock prices information from the web stock detail page
             and returns dictionary list.
         """
-        html = get_source_from_url(DAILY_STOCK_PRICE_URL.format(self.code, page))
+        html = get_source_from_url(
+            DAILY_STOCK_PRICE_URL.format(self.code, page))
         soup = BeautifulSoup(html, "html.parser")
         price_trs = soup.find("table").find_all("tr")[1:]
 
@@ -216,7 +217,8 @@ class StockInfo:
             stock = continuous_stock_list[sidx]
             prev_stock = continuous_stock_list[sidx + 1]
 
-            increased_price = stock["closing_price"] - prev_stock["closing_price"]
+            increased_price = stock["closing_price"] - \
+                prev_stock["closing_price"]
             increased_per = increased_price / prev_stock["closing_price"] * 100
 
             if increased_per < min_daily_increase_per:
@@ -270,7 +272,8 @@ class StockCrawler:
 
                 temp_obj_for_stock_info = {
                     "stock_detail_link": "{0}{1}".format(
-                        DETAIL_STOCK_BASE_URL, stock_tds[1].find("a")["href"].strip()
+                        DETAIL_STOCK_BASE_URL, stock_tds[1].find("a")[
+                            "href"].strip()
                     ),
                     # 종목코드
                     "code": stock_tds[1].find("a")["href"].split("code=")[-1],
