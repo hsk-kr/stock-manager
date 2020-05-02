@@ -6,7 +6,9 @@ from .views import (
     CrawlerActivityViewSet,
     WorkerViewSet,
     AnalyzedDataViewSet,
-    NotAnalyzedDataViewSet
+    NotAnalyzedDataViewSet,
+    CrawlerView,
+    AnalyzerView
 )
 
 api_router = routers.SimpleRouter()
@@ -16,4 +18,5 @@ api_router.register(r"worker", WorkerViewSet)
 api_router.register(r"analyzeddata", AnalyzedDataViewSet)
 api_router.register(r"notanalyzeddata", NotAnalyzedDataViewSet)
 
-urlpatterns = [path("", include(api_router.urls))]
+urlpatterns = [path("", include(api_router.urls)),
+               path("crawler", CrawlerView.as_view()), path("analyzer", AnalyzerView.as_view())]
