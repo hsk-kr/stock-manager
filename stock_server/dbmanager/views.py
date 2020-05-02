@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins, status
+from rest_framework import viewsets, mixins, status, filters
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -31,6 +31,9 @@ class WorkerViewSet(viewsets.ModelViewSet):
 class AnalyzedDataViewSet(viewsets.ModelViewSet):
     serializer_class = AnalyzedDataSerializer
     queryset = AnalyzedData.objects.all()
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filter_fields = ['stock_id__worker_id']
+    ordering_fields = ['continuous_days', 'last_fluctuation', 'created_at']
 
     def create(self, request, *args, **kwargs):
         """

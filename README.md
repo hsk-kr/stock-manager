@@ -20,10 +20,9 @@ Crawler and Analyzer push data using this.<br>
 StockManagementServer also uses this.<br>
 It uses session for authentication users.
 
-### StockManagementServer
+## StockClient
 
-RestfulAPI server for letting users to control Crawler and Analzyer.
-Users can make a schedule for Crawler using this and can analyze stock information.<br>
+Interface for users to control all of the servers.
 
 ## AutoInvestor (Not yet)
 
@@ -33,7 +32,3 @@ Invest automactically itself without people.
 
 Control the AutoInvestor using RestfulAPI.<br>
 It's controlled by users who uses StockManagementClient.
-
-## StockManagementClient
-
-Interface for users to control all of the servers.

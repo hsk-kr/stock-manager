@@ -79,7 +79,9 @@ class AnalyzedDataAdmin(admin.ModelAdmin):
     stock_code.short_description = "stock_code"
 
     def stock_detail_url(self, obj):
-        return obj.stock_id.stock_detail_link
+        return format_html(
+            "<a href={url} target='_blank'>OPEN</a>", url=obj.stock_id.stock_detail_link
+        )
 
     stock_detail_url.short_description = "stock_url"
 
